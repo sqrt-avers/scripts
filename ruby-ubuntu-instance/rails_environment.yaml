@@ -1,0 +1,78 @@
+---
+- hosts: 'ruby'
+  sudo: 'yes'
+  tasks:
+       - name: 'echo'
+         shell: 'echo "hello world"'
+
+       - name: 'install dependencies'
+         apt: 'name={{ item }}'
+         with_items:
+                   - 'git'
+                   - 'build-essential'
+                   - 'openssl'
+                   - 'libreadline6'
+                   - 'libreadline6-dev'
+                   - 'curl'
+                   - 'git-core'
+                   - 'zlib1g'
+                   - 'zlib1g-dev'
+                   - 'libssl-dev'
+                   - 'libyaml-dev'
+                   - 'libsqlite3-dev'
+                   - 'sqlite3'
+                   - 'libxml2-dev'
+                   - 'libxslt-dev'
+                   - 'autoconf'
+                   - 'libc6-dev'
+                   - 'ncurses-dev'
+                   - 'automake'
+                   - 'libtool'
+                   - 'bison'
+                   - 'subversion'
+
+       - name: Download RVM
+         shell: 'curl -L get.rvm.io | bash -s stable'
+         args:
+           executable: /bin/bash
+
+       - name: RVM source
+         shell: 'source /usr/local/rvm/scripts/rvm'
+         args:
+           executable: /bin/bash
+
+       - name: install RVM requirements
+         shell: 'rvm requirements'
+
+       - name: install andcheck dependencie
+         shell: 'rvmsudo /usr/bin/apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-de$
+       - name: Install ruby
+         shell: 'rvm install 2.4.0'
+
+       - name: Install ruby
+         shell: 'rvm use 2.4.0 --default'
+
+       - name: Install rubygems
+         shell: 'rvm rubygems current'
+
+       - name: Install rails
+         shell: 'gem install rails'
+
+       - name: Install passenger
+         shell: 'gem install passenger --no-rdoc --no-ri'
+
+#on this stage must press enter
+       - name: Install passenger
+         shell: 'passenger-install-nginx-module --no-rdoc --no-ri'
+
+       - name: Install passenger
+         shell: 'rvmsudo passenger-config validate-install'
+
+#Since this stage service not work
+       - name: Restart nginx
+         action: service name=nginx state=restarted
+
+       - name: Copy new vhost file
+         copy:
+           src: /etc/ansible/nginx.conf
+           dest: /opt/nginx/conf

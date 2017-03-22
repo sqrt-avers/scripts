@@ -1,0 +1,17 @@
+{
+  "apps": [
+    {
+      "serverURL": "http://ip:1337/parse",
+      "appId": "your_app_id",
+      "masterKey": "your_masterkey",
+      "appName": "Appname"
+    }
+  ],
+  "users": [
+      {
+           "user":"username",
+           "pass":"password"
+      }
+  ]
+}
+

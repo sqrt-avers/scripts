@@ -1,0 +1,111 @@
+- name: Configure new instance
+  hosts: all
+  sudo: yes
+
+  vars:
+    mysql_root_password: your_mysql_root_password
+    mysql_database: first
+    mysql_user_name: mysql_username
+    mysql_user_host: "%"
+    mysql_user_password: mysql_password
+
+  tasks:
+    - name: Update
+      apt: update_cache=yes
+
+    - name: Install required packages
+      apt: name={{ item }}
+      with_items:
+        - zip
+        - unzip
+        - build-essential
+        - sockstat
+        - python-pip
+        - nginx
+        - php5
+        - php-pear
+        - php5-cli
+        - php5-json
+        - php5-curl
+        - php5-mysql
+        - php5-mcrypt
+        - php5-xcache
+        - php5-dev
+        - php5-cgi
+        - php5-fpm
+        - php5-common
+      
+    - name: Service php5-fpm stop
+      command: service php5-fpm stop
+
+    - name: Service nginx stop
+      command: service nginx stop
+
+    - name: Check PHP version and delete default vhost from nginx
+      shell: echo 'cgi.fix_pathinfo = 0' >> /etc/php5/fpm/php.ini | echo 'security.limit_extensions = .php .php3 .php4 .php5' >> /etc/php5/fpm/pool.d/www.conf | echo -e '<?php\nphpinfo();\n?>' > /usr/share/nginx/html/index.php | rm /etc/nginx/sites-available/default
+
+    - name: Copy new vhost file
+      copy:
+        src: /etc/ansible/default
+        dest: /etc/nginx/sites-available
+
+    - name: Service php5-fpm start
+      command: service php5-fpm start
+
+    - name: Service nginx start
+      command: service nginx start
+
+    - name: Set MySQL root password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password' value='{{mysql_root_password | quote}}' vtype='password'
+    
+    - name: Confirm MySQL root password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password_again' value='{{mysql_root_password | quote}}' vtype='password'
+
+    - name: Install MySQL
+      apt: name={{ item }}
+      with_items:
+        - mysql-server
+        - mysql-client
+        - python-mysqldb
+
+    ##### Security MySQL #####
+
+    - name: Update MySQL root password for root
+      mysql_user: name=root host='{{ item }}' password='{{ mysql_root_password }}' state=present login_password='{{ mysql_root_password }}' login_user='root'
+      with_items:
+        - 'your_ip'
+        - '127.0.0.1'
+        - '::1'
+        - 'localhost'
+
+    - name: Create local my.cnf for root user
+      template: src=/etc/mysql/my.cnf dest=/root/.my.cnf owner=root mode=0600
+
+    - name: Restart MySQL
+      command: service mysql restart
+
+    - name: Create MySQL database
+      mysql_db: name='{{ mysql_database }}' state=present collation='utf8_general_ci' encoding='utf8' login_password='{{ mysql_root_password }}' login_user='root'
+        
+    - name: Create MySQL user
+      mysql_user:
+        login_user: 'root'
+        login_password: '{{ mysql_root_password }}'
+        name: '{{ mysql_user_name }}'
+        password: '{{ mysql_user_password }}'
+        host: '{{ mysql_user_host }}'
+        priv: '*.*:ALL'
+        state: present
+
+    - name: Remove anonymous MySQL users
+      mysql_user:
+        login_user: 'root'
+        login_password: '{{ mysql_root_password }}'
+        name: ''
+        state: absent
+
+    - name: Remove MySQL test database
+      mysql_db: name='test' state=absent login_user='root' login_password='{{ mysql_root_password }}'
+
+    - name: Restart MySQL
+      command: service mysql restart
