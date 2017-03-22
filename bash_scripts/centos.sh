@@ -16,15 +16,13 @@ rpm -ivh http://dl.atrpms.net/all/atrpms-repo-6-7.el6.x86_64.rpm
 rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
 
 #create user and add to sudo
-#adduser gorynov
-#usermod -aG wheel gorynov
+
+adduser user
+usermod -aG wheel user
 
 #hostname
 
-hostnamectl set-hostname ALEX.SERVER
-service hostname restart
-
-systemctl restart networking.service
+hostnamectl set-hostname your_hostname
 
 #install updates and tools
 
@@ -150,7 +148,7 @@ systemctl start supervisord
 #install MySQL
 
 yum install -y mariadb-server
-MYSQL_ROOT_PASSWORD=devroot
+MYSQL_ROOT_PASSWORD=your_mysql_root_password
 
 #MySQL secure installation
 
@@ -202,7 +200,7 @@ git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
 
 cd /opt/letsencrypt
 
-./letsencrypt-auto certonly --standalone -d devops2.chdev.com.ua -d www.devops2.chdev.com.ua
+./letsencrypt-auto certonly --standalone -d domain_name -d www.domain_name
 
 cat apache.cent >> /etc/httpd/httpd.conf
 

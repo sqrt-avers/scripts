@@ -3,7 +3,7 @@
 
 #hostname
 
-hostnamectl set-hostname ALEX.SERVER
+hostnamectl set-hostname your_hostname
 service hostname restart
 
 #time
@@ -181,15 +181,15 @@ git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
 
 cd /opt/letsencrypt
 
-./letsencrypt-auto certonly --standalone -d devops2.chdev.com.ua -d www.devops2.chdev.com.ua
+./letsencrypt-auto certonly --standalone -d domain_name -d www.domain_name
 
-cat <<EOT > /etc/apache2/sites-available/devops2.chdev.com.ua-ssl.conf
+cat <<EOT > /etc/apache2/sites-available/domain_name.ua-ssl.conf
 Listen 443
 RewriteEngine on
 
 <VirtualHost *:80>
-    ServerName www.devops2.chdev.com.ua
-    ServerAlias devops2.chdev.com.ua
+    ServerName your_server_name
+    ServerAlias your_server_name
     RewriteEngine on
 
     RewriteRule ^(/.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
@@ -198,7 +198,7 @@ RewriteEngine on
 <IfModule mod_ssl.c>
         <VirtualHost _default_:443>
                 ServerAdmin
-                ServerName devops2.chdev.com.ua
+                ServerName your_server_name
 
                 DocumentRoot /var/www/html
                 <Directory />
@@ -215,8 +215,8 @@ RewriteEngine on
                 ErrorLog /error.log
                 CustomLog /access.log combined
                 SSLEngine on
-                SSLCertificateFile      /etc/letsencrypt/live/devops2.chdev.com.ua/cert.pem
-                SSLCertificateKeyFile   /etc/letsencrypt/live/devops2.chdev.com.ua/privkey.pem
+                SSLCertificateFile      /etc/letsencrypt/live/domain_name/cert.pem
+                SSLCertificateKeyFile   /etc/letsencrypt/live/domain_name/privkey.pem
                 <FilesMatch "\.(cgi|shtml|phtml|php)$">
                                 SSLOptions +StdEnvVars
                 </FilesMatch>
