@@ -1,0 +1,101 @@
+# Rails environment
+---
+- hosts: ruby
+  sudo: yes
+  tasks:
+       - name: First update
+         apt: update_cache=yes
+
+       - name: Add appuser with ssh key
+         user:
+           name: appuser
+           generate_ssh_key: yes
+           ssh_key_file: .ssh/id_rsa
+
+       - name: Download RVM
+         shell: 'curl -L get.rvm.io | bash -s stable'
+         args:
+           executable: /bin/bash
+
+       - name: RVM source
+         shell: 'source /usr/local/rvm/scripts/rvm'
+         args:
+           executable: /bin/bash
+
+       - name: Install RVM requirements
+         shell: 'rvm requirements'
+
+       - name: Install other dependencies
+         shell: 'rvmsudo /usr/bin/apt-get install build-essential openssl libreadline6 libreadline6-dev curl git zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf  libc6-dev ncurses-dev automake libtool bison subversion'
+
+       - name: Install Ruby
+         shell: 'rvm install 2.4.0'
+
+       - name: Set default version of ruby
+         shell: 'rvm use 2.4.0 --default'
+
+       - name: Install Rubygems
+         shell: 'rvm rubygems current'
+
+       - name: Install Rake
+         gem:
+           name: rake
+           state: latest
+
+       - name: Install Rails
+         gem:
+           name: rails
+           state: latest
+
+       #### Install Nginx with passenger module #### 
+
+       - name: Add apt-key for Nginx-passenger-module
+         shell: 'apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 561F9B9CAC40B2F7'
+
+       - name: Install Nginx-passenger-module dependencies
+         apt: name={{ item }}
+         with_items:
+                   - 'apt-transport-https'
+                   - 'ca-certificates'
+
+       - name: Add repo to source list
+         shell: 'sh -c 'echo deb https://oss-binaries.phusionpassenger.com/apt/passenger trusty main > /etc/apt/sources.list.d/passenger.list''
+         args:
+           executable: /bin/bash
+
+       - name: Second update
+         apt: update_cache=yes
+
+       - name: Install Nginx-passenger-module and Passenger
+         apt: name={{ item }}
+         with_items:
+                   - 'nginx-extras'
+                   - 'passenger'
+
+       - name: Add Passenger-module to Nginx
+         shell: 'sed -i 's/# include \/etc\/nginx\/passenger.conf;/include \/etc\/nginx\/passenger.conf;/' /etc/nginx/nginx.conf'
+
+       - name: Copy passenger vhost file
+         copy:
+           src: /etc/ansible/passenger.conf
+           dest: /etc/nginx/sites-available/
+
+       - name: Enable new vhost
+         shell: 'ln -s /etc/nginx/sites-available/passenger.conf /etc/nginx/sites-enabled/'
+
+       - name: Restart nginx
+         command: service nginx restart
+
+       - name: Check validation of passenger vhost
+         shell: 'rvmsudo passenger-config validate-install >> /etc/nginx/passenger_validation.log'
+
+       - name: Final update and upgrade
+         apt: update_cache=yes upgrade=yes
+
+       - name: Create app folder
+         shell: 'mkdir /home/appuser/app'
+
+       - name: Run Rails-server in app folder
+         shell: 'cd /home/appuser/app | rails -s'
+      
+
