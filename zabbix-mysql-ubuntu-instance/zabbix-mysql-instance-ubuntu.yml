@@ -1,0 +1,133 @@
+---
+- name: Configure new zabbix instance
+  hosts: 'all'
+  sudo: 'yes'
+  vars: 
+    mysql_root_password: password
+
+  tasks:
+
+    - name: Update
+      apt: update_cache=yes
+
+    - name: Set MySQL root password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password' value='{{mysql_root_password | quote}}' vtype='password'
+    
+    - name: Confirm MySQL root password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password_again' value='{{mysql_root_password | quote}}' vtype='password'
+ 
+    - name: Install requirements
+      apt: name='{{ item }}'
+      with_items:
+        - 'apache2'
+        - 'mysql-server'
+        - 'mysql-client'
+        - 'python-mysqldb'
+        - 'php5' 
+        - 'php5-cli'
+        - 'php5-common'
+        - 'php5-mysql'
+        
+    - name: First change config in php.ini
+      shell: 'sed -i -r "s/^;?(date.timezone) =/\1 = Europe\/Kiev/" /etc/php5/apache2/php.ini'
+
+    - name: Second change config in php.ini
+      shell: 'sed -i "s/post_max_size = 8M/post_max_size = 16M/g" /etc/php5/apache2/php.ini'
+
+    - name: Third change config in php.ini
+      shell: 'sed -i "s/max_execution_time = 30/max_execution_time = 300/g" /etc/php5/apache2/php.ini'
+
+    - name: Fourd change config in php.ini
+      shell: 'sed -i "s/max_input_time = 60/max_input_time = 300/g" /etc/php5/apache2/php.ini'
+
+#### Install Zabbix ####
+
+    - name: Initial Zabbix repo
+      shell: 'wget http://repo.zabbix.com/zabbix/3.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_3.0-1+trusty_all.deb'
+
+    - name: Depack
+      shell: 'dpkg -i /home/gorynov/zabbix-release_3.0-1+trusty_all.deb'
+
+    - name: Update
+      apt: update_cache=yes
+
+    - name: Install zabbix
+      apt: name='{{ item }}'
+      with_items:
+        - 'zabbix-server-mysql'
+        - 'zabbix-frontend-php'
+
+#### Secure install Mysql and configure user and DB for Zabbix ####
+
+    - name: Update MySQL root password for root
+      mysql_user: name=root host='{{ item }}' password='password' state=present login_password='password' login_user='root'
+      with_items:
+        - 'your_ip'
+        - '127.0.0.1'
+        - '::1'
+        - 'localhost'
+
+    - name: Create local my.cnf for root user
+      template: src=/etc/mysql/my.cnf dest=/root/.my.cnf owner=root mode=0600
+
+    - name: Restart MySQL
+      command: service mysql restart
+
+    - name: Create MySQL database
+      mysql_db: name='zabbixdb' state=present collation='utf8_general_ci' encoding='utf8' login_password='password' login_user='root'
+        
+    - name: Create MySQL user
+      mysql_user:
+        login_user: 'root'
+        login_password: 'password'
+        name: 'zabbix'
+        password: 'password'
+        host: 'localhost'
+        priv: 'zabbixdb.*:ALL'
+        state: present
+
+    - name: Remove anonymous MySQL users
+      mysql_user:
+        login_user: 'root'
+        login_password: 'password'
+        name: ''
+        state: absent
+
+    - name: Remove MySQL test database
+      mysql_db: name='test' state=absent login_user='root' login_password='password'
+
+    - name: First update DB
+      shell: 'zcat create.sql.gz | mysql -uroot -ppassword zabbixdb'
+      args:
+        chdir: /usr/share/doc/zabbix-server-mysql/
+
+#### configure Zabbix and Apache for Zabbix ####
+
+    - name: First update Zabbix config
+      shell: 'sed -i "s/# DBHost=localhost/DBHost=localhost/g" /etc/zabbix/zabbix_server.conf'
+
+    - name: Second zabbix config
+      shell: 'sed -i "s/DBName=zabbix/DBName=zabbixdb/g" /etc/zabbix/zabbix_server.conf'
+
+    - name: Third update Zabbix config
+      shell: 'sed -i "s/# DBPassword=/DBPassword=password/g" /etc/zabbix/zabbix_server.conf'
+
+    - name: Copy Zabbix conf-file to Apache
+      shell: 'cp /etc/zabbix/apache.conf /etc/apache2/conf-available/'
+
+    - name: Copy Zabbix conf.php
+      copy:
+        src: /etc/ansible/zabbix.conf.php
+        dest: /etc/zabbix/
+
+    - name: Restart Apache
+      command: 'service apache2 restart'
+
+    - name: Install Zabbix-agent
+      apt: name='zabbix-agent' state=latest
+
+    - name: Restart Zabbix-server
+      command: 'service zabbix-server restart'
+
+    - name: Restart Zabbix-agent
+      command: 'service zabbix-agent restart'
