@@ -7,7 +7,7 @@ $DB['SERVER']   = 'localhost';
 $DB['PORT']     = '0';
 $DB['DATABASE'] = 'zabbixdb';
 $DB['USER']     = 'zabbix';
-$DB['PASSWORD'] = 'zabbix';
+$DB['PASSWORD'] = 'password';
 
 // SCHEMA is relevant only for IBM_DB2 database
 $DB['SCHEMA'] = '';
