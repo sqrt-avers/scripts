@@ -1,0 +1,98 @@
+- hosts: 'jenkins'
+  my_jenkins_params:
+    url_username: admin
+    url_password: password
+    url: http://localhost:8080
+
+  tasks:
+
+    - name: Add user Jenkins with ssh key
+      user:
+        name: 'jenkins'
+        generate_ssh_key: 'yes'
+        ssh_key_file: .ssh/id_rsa
+
+    - name: Download Jenkins
+      shell: 'wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | apt-key add -'
+
+    - name: Add source for Jenkins
+      shell: 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list'
+
+    - name: Add source for Java 8
+      apt_repository: repo='ppa:webupd8team/java' state=present update_cache=yes
+
+    - name: Install dependencies
+      apt: name='{{ item }}'
+      with_items:
+        - 'git'
+        - 'build-essential'
+        - 'python-software-properties'
+        - 'openssl'
+        - 'curl'
+        - 'install oracle-java8-installer'
+        - 'jenkins'
+#        - 'maven'
+
+    - name: Wait for Jenkins to start up
+        uri:
+          url: 'http://localhost:8080'
+          status_code: '200'
+          timeout: '5'
+        register: 'jenkins_service_status'
+        retries: '60'
+        delay: '5'
+        until: >
+          'status' in jenkins_service_status and jenkins_service_status['status'] == 200
+        when: 'jenkins_restart_required'
+
+    - name: Set default java version
+      apt: name='oracle-java8-set-default'
+
+    - name: Add java home path in environment
+      shell: 'echo "JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> /etc/environment'
+
+    - name: Add jre home path in environment 
+      shell: 'echo "JRE_HOME=/usr/lib/jvm/java-8-oracle/jre" >> /etc/environment'
+
+    - name: Restart Jenkins
+      command: 'service jenkins restart'
+
+#### Add plugins for Jenkins ####
+
+    - name: Install plugins
+      jenkins_plugin:
+        name: '{{ item }}'
+        with_items:
+          - 'git'
+          - 'github'
+          - 'email-ext'
+          - 'cloudbees-folder'
+          - 'rebuild'
+          - 'ssh-slaves'
+          - 'ws-cleanup'
+          - 'timestamper'
+          - 'plain-credentials'
+          - 'build-pipeline-plugin'
+          - 'ansible'
+        params: '{{ my_jenkins_params }}'
+
+#### Create Jenkins job ####
+
+#    - name: Craete Jenkins job from xml file
+#      jenkins_job:
+#        config: "{{ lookup('file', '/configs/config.xml') }}"
+#        name: test
+#        password: admin
+#        url: http://localhost:8080
+#        user: admin
+
+    - name: Create temporary Job name directory
+      tempfile:
+        state: 'directory'
+        suffix: 'jobnamedir'
+        path: /var/lib/jenkins/jobs/
+
+    - name: Copy Config.xml Jenkins job file
+      copy:
+        src: ./configs/config.xml
+        dest: /var/lib/jenkins/jobs/jobnamedir/

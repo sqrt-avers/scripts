@@ -1,0 +1,3 @@
+- include: plays/web.yml
+- include: plays/Haproxy.yml
+- include: plays/Jenkins.yml
