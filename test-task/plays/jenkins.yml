@@ -44,7 +44,7 @@
     - name: Restart Jenkins
       service: name=jenkins state=restarted
 
-#### Other soft ####
+#### Other necessary soft ####
 
     - name: Install Git
       apt: name=git state=present
@@ -54,22 +54,22 @@
 
 #### This block need to module jenkins_job ####
 
-    - name: Install dependencies
-      apt: name='{{ item }}' state=present
-      with_items:
-        - 'python-jenkins'
-        - 'libxml2-dev'
-        - 'libxslt-dev'
-        - 'python-dev'
-        - 'python3-lxml'
-        - 'liblz-dev'
-        - 'libffi-dev'
-        - 'zlib1g-dev'
-        - 'libxslt1-dev'
+#    - name: Install dependencies
+#      apt: name='{{ item }}' state=present
+#      with_items:
+#        - 'python-jenkins'
+#        - 'libxml2-dev'
+#        - 'libxslt-dev'
+#        - 'python-dev'
+#        - 'python3-lxml'
+#        - 'liblz-dev'
+#        - 'libffi-dev'
+#        - 'zlib1g-dev'
+#        - 'libxslt1-dev'
 
-    - name: Pip install LXML
-      pip:
-        name: lxml
+#    - name: Pip install LXML
+#      pip:
+#        name: lxml
 
 #### Configure Jenkins without web interface ####
 
