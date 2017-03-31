@@ -1,62 +1,42 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<project>
-  <actions/>
-  <description></description>
-  <keepDependencies>false</keepDependencies>
-  <properties>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>1</daysToKeep>
-        <numToKeep>5</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
-  </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.1.0">
-    <configVersion>2</configVersion>
-    <userRemoteConfigs>
-      <hudson.plugins.git.UserRemoteConfig>
-        <url>https://github.com/your_url.git</url>
-      </hudson.plugins.git.UserRemoteConfig>
-    </userRemoteConfigs>
-    <branches>
-      <hudson.plugins.git.BranchSpec>
-        <name>*/master</name>
-      </hudson.plugins.git.BranchSpec>
-    </branches>
-    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-    <submoduleCfg class="list"/>
-    <extensions/>
-  </scm>
-  <canRoam>true</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
-  <concurrentBuild>true</concurrentBuild>
-  <builders>
-    <hudson.tasks.Maven>
-      <targets>clean install</targets>
-      <mavenName>MAVEN_LOCAL</mavenName>
-      <usePrivateRepository>false</usePrivateRepository>
-      <settings class="jenkins.mvn.DefaultSettingsProvider"/>
-      <globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider"/>
-      <injectBuildVariables>false</injectBuildVariables>
-    </hudson.tasks.Maven>
-    <hudson.tasks.Shell>
-      <command>echo "Hello world"</command>
-    </hudson.tasks.Shell>
-  </builders>
-  <publishers/>
-  <buildWrappers>
-    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.32">
-      <deleteDirs>false</deleteDirs>
-      <cleanupParameter></cleanupParameter>
-      <externalDelete></externalDelete>
-    </hudson.plugins.ws__cleanup.PreBuildCleanup>
-  </buildWrappers>
+<hudson>
+  <disabledAdministrativeMonitors/>
+  <version>1.0</version>
+  <numExecutors>2</numExecutors>
+  <mode>NORMAL</mode>
+  <useSecurity>true</useSecurity>
+  <authorizationStrategy class="hudson.security.FullControlOnceLoggedInAuthorizationStrategy">
+    <denyAnonymousReadAccess>true</denyAnonymousReadAccess>
+  </authorizationStrategy>
+  <securityRealm class="hudson.security.HudsonPrivateSecurityRealm">
+    <disableSignup>true</disableSignup>
+    <enableCaptcha>false</enableCaptcha>
+  </securityRealm>
+  <disableRememberMe>false</disableRememberMe>
+  <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
+  <workspaceDir>${ITEM_ROOTDIR}/workspace</workspaceDir>
+  <buildsDir>${ITEM_ROOTDIR}/builds</buildsDir>
+  <markupFormatter class="hudson.markup.EscapedMarkupFormatter"/>
+  <jdks/>
+  <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
+  <myViewsTabBar class="hudson.views.DefaultMyViewsTabBar"/>
+  <clouds/>
+  <scmCheckoutRetryCount>0</scmCheckoutRetryCount>
+  <views>
+    <hudson.model.AllView>
+      <owner class="hudson" reference="../../.."/>
+      <name>All</name>
+      <filterExecutors>false</filterExecutors>
+      <filterQueue>false</filterQueue>
+      <properties class="hudson.model.View$PropertyList"/>
+    </hudson.model.AllView>
+  </views>
+  <primaryView>All</primaryView>
+  <slaveAgentPort>0</slaveAgentPort>
+  <label></label>
+  <crumbIssuer class="hudson.security.csrf.DefaultCrumbIssuer">
+    <excludeClientIPFromCrumb>false</excludeClientIPFromCrumb>
+  </crumbIssuer>
+  <nodeProperties/>
+  <globalNodeProperties/>
+</hudson>

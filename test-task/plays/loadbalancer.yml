@@ -1,0 +1,25 @@
+- hosts: 'loadbalancer'
+  remote_user: 'vagrant'
+  gather_facts: no
+
+  tasks:
+
+    - name: Install Haproxy
+      apt: 
+        name: 'haproxy'
+        state: present
+        update_cache: yes
+
+    - name: Remove default Haproxy config
+      shell: 'rm /etc/haproxy/haproxy.cfg'
+
+    - name: Copy new Haproxy config file
+      copy:
+        src: ./configs/haproxy.cfg
+        dest: /etc/haproxy/
+
+    - name: Enable Haproxy
+      shell: 'sed -i 's/ENABLED=0/ENABLED=1/' /etc/default/haproxy'
+
+    - name: Restart Haproxy
+      command: 'service haproxy restart'

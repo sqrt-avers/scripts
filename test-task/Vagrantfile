@@ -1,10 +1,10 @@
 ### First VM ###
 
-Vagrant.configure("4") do |config|
+Vagrant.configure("2") do |config|
   config.vm.define "web1", primary: true do |web1|
     web1.vm.box = "ubuntu/trusty64"
     web1.vm.hostname = 'web1'
-    web1.vm.network :private_network, ip: "192.168.56.101"
+    web1.vm.network :private_network, ip: "192.168.56.101", bridge: "eth0"
     web1.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh"
     web1.vm.provider :virtualbox do |v|
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
@@ -18,7 +18,7 @@ Vagrant.configure("4") do |config|
   config.vm.define "web2", autostart: false do |web2|
     web2.vm.box = "ubuntu/trusty64"
     web2.vm.hostname = 'web2'
-    web2.vm.network :private_network, ip: "192.168.56.102"
+    web2.vm.network :private_network, ip: "192.168.56.102", bridge: "eth0"
     web2.vm.network :forwarded_port, guest: 22, host: 3333, id: "ssh"
     web2.vm.provider :virtualbox do |v|
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
@@ -32,7 +32,7 @@ Vagrant.configure("4") do |config|
   config.vm.define "loadbalancer", autostart: false do |loadbalancer|
     loadbalancer.vm.box = "ubuntu/trusty64""
     loadbalancer.vm.hostname = 'loadbalancer'
-    loadbalancer.vm.network :private_network, ip: "192.168.56.103"
+    loadbalancer.vm.network :private_network, ip: "192.168.56.103", bridge: "eth0"
     loadbalancer.vm.network :forwarded_port, guest: 22, host: 4444, id: "ssh"
     loadbalancer.vm.network :forwarded_port, guest: 80, host: 8000, id: "HAproxy"
     loadbalancer.vm.provider :virtualbox do |v|
@@ -47,7 +47,7 @@ Vagrant.configure("4") do |config|
   config.vm.define "jenkins", autostart: false do |jenkins|
     jenkins.vm.box = "ubuntu/trusty64"
     jenkins.vm.hostname = 'jenkins'
-    jenkins.vm.network :private_network, ip: "192.168.56.104"
+    jenkins.vm.network :private_network, ip: "192.168.56.104", bridge: "eth0"
     jenkins.vm.network :forwarded_port, guest: 22, host: 5555, id: "ssh"
     jenkins.vm.network :forwarded_port, guest: 8080, host: 8080, id: "jenkins_web"
     jenkins.vm.provider :virtualbox do |v|
