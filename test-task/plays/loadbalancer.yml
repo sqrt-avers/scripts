@@ -1,7 +1,6 @@
-- hosts: 'loadbalancer'
-  remote_user: 'vagrant'
+- hosts: loadbalancer
   gather_facts: no
-
+  sudo: yes
   tasks:
 
     - name: Install Haproxy

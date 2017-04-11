@@ -1,0 +1,6 @@
+- job:
+    name: 'test_job'
+    project-type: freestyle
+    description: 'Job for a ping web1!'
+    builders:
+      - shell: 'sh /home/user/ping.sh'

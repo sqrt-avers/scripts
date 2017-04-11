@@ -1,7 +1,6 @@
 - hosts: web2
-  remote_user: 'vagrant'
   gather_facts: no
-
+  sudo: yes
   tasks:
 
     - name: Install apache
