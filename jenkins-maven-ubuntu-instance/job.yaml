@@ -1,0 +1,5 @@
+- job:
+    - name: 'Provisioning job'
+      project-type: freestyle
+      builders:
+        - shell: 'ansible-playbook -i /var/lib/jenkins/hosts playbook.yml'

@@ -1,0 +1,18 @@
+mongo:
+  image: mongo:latest
+  ports:
+    - '27017:27017'
+  links:
+    - parse-server
+
+parse-server:
+  build: /docker-compose/serv/Dockerfile
+  ports:
+    - '1337:1337'
+
+parse-dashboard:
+  build: /docker-compose/dash/Dockerfile
+  ports:
+    - '4040:4040'
+  links:
+    - parse-server
