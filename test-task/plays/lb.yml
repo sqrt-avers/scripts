@@ -1,4 +1,4 @@
-- hosts: loadbalancer
+- hosts: lb
   gather_facts: no
   sudo: yes
   tasks:
@@ -18,7 +18,7 @@
         dest: /etc/haproxy/
 
     - name: Enable Haproxy
-      shell: 'sed -i 's/ENABLED=0/ENABLED=1/' /etc/default/haproxy'
+      shell: "sed -i 's/ENABLED=0/ENABLED=1/' /etc/default/haproxy"
 
     - name: Restart Haproxy
       command: 'service haproxy restart'

@@ -1,4 +1,4 @@
 - include: ./plays/web1.yml
 - include: ./plays/web2.yml
-- include: ./plays/haproxy.yml
+- include: ./plays/lb.yml
 - include: ./plays/jenkins.yml
