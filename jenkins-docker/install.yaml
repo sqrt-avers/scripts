@@ -1,4 +1,4 @@
-- hosts: jenkins
+- hosts: all
   gather_facts: no
   sudo: yes
   vars:
@@ -28,6 +28,19 @@
 
     - name: Add jre home path in environment
       shell: 'echo "JRE_HOME=/usr/lib/jvm/java-8-oracle/jre" >> /etc/environment'
+
+#### Install Docker ####
+
+    - name: Download and install Docker
+      shell: 'curl -sSL https://get.docker.com/ | sh'
+      args:
+        executable: /bin/bash
+
+    - name: Download and install Docker-compose
+      shell: 'curl -L https://github.com/docker/compose/releases/download/1.5.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose'
+
+    - name: Permission
+      shell: 'chmod +x /usr/local/bin/docker-compose'
 
 #### Install Jenkins ####
 
@@ -59,9 +72,14 @@
         ssh_key_bits: 2048
         ssh_key_file: /var/lib/jenkins/.ssh/id_rsa
 
-
     - name: disable sudo pass for Jenkins user
       shell: "echo 'jenkins ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers"
+
+    - name: Add Jenkins user to doker group
+      user:
+        name: jenkins
+        groups: docker
+        append: yes
 
     - name: Disable websetup
       lineinfile:
@@ -92,16 +110,13 @@
       file: path="/var/lib/jenkins/users/admin" owner=jenkins group=jenkins mode=0755 state=directory recurse=yes
 
     - name: Create admin user
-      template: src=./configs/admin-config.xml.j2 dest="/var/lib/jenkins/users/admin/config.xml" force=no
-      register: jenkins_admin_config
+      template: src=./admin-config.xml.j2 dest="/var/lib/jenkins/users/admin/config.xml" force=no
 
     - name: Remove old global config-file
       shell: 'rm /var/lib/jenkins/config.xml'
 
     - name: Copy new global Jenkins config
-      copy:
-        src: ./configs/config.xml
-        dest: /var/lib/jenkins/
+      template: src=./config.xml.j2 dest="/var/lib/jenkins/config.xml" force=no
 
     - name: Restart Jenkins
       service: name=jenkins state=restarted
@@ -117,11 +132,6 @@
     - name: Install email-ext plugin
       jenkins_plugin:
         name: 'email-ext'
-        params: '{{ my_jenkins_params }}'
-
-    - name: Install ws-cleanup plugin
-      jenkins_plugin:
-        name: 'ws-cleanup'
         params: '{{ my_jenkins_params }}'
 
     - name: Install timestamper plugin
@@ -183,103 +193,15 @@
 
 #### Create manual Jenkins job ####
 
-#    - name: Create job directory
-#      file: path="/var/lib/jenkins/jobs/jobnamedir" owner=jenkins group=jenkins mode=0755 state=directory recurse=yes
-#
-#    - name: Create Jenkins job
-#      template: src=./configs/job-config.xml.j2 dest="/var/lib/jenkins/jobs/jobnamedir/config.xml" force=no
-#
-#    - name: Restart Jenkins
-#      service: name=jenkins state=restarted
-#
-#    - name: Wait for Jenkins to become available
-#      delay: 30
-#      wait_for: port=8080
+    - name: Create job directory
+      file: path="/var/lib/jenkins/jobs/jobnamedir" owner=jenkins group=jenkins mode=0755 state=directory recurse=yes
 
-#### Install ansible module jenkins_job dependencies ####
-
-#    - name: Install ansible module jenkins_job dependencies
-#      apt: name='{{ item }}' state=present
-#      with_items:
-#        - 'python-jenkins'
-#        - 'libxml2-dev'
-#        - 'libxslt-dev'
-#        - 'python-dev'
-#        - 'python3-lxml'
-#        - 'liblz-dev'
-#        - 'libffi-dev'
-#        - 'zlib1g-dev'
-#        - 'libxslt1-dev'
-#
-#    - name: Pip install LXML
-#      pip:
-#        name: lxml
-
-#### Add job by ansible modules ####
-
-#    - name: Craete Jenkins job from xml file
-#      jenkins_job:
-#        config: "{{ lookup('template', './configs/job-config.xml.j2') }}"
-#        name: jobname
-#        password: password
-#        url: http://localhost:8080
-#        user: admin
-
-#### Install jenkins job builder ####
-
-    - name: Install Python dependencies
-      apt: name='{{ item }}' state=present
-      with_items:
-        - 'python-virtualenv'
-        - 'python-dev'
-
-    - name: Pip install PyYAML
-      pip:
-        name: 'PyYAML'
-
-    - name: Pip install python-jenkins
-      pip:
-        name: 'python-jenkins'
-
-    - name: Pip install jenkins-job-builder
-      pip:
-        name: 'jenkins-job-builder'
-
-    - name: Create config directory
-      file: path='/etc/jenkins_jobs/' state=directory recurse=yes
-
-    - name: Copy new jenkins-job-builder config
-      copy:
-        src: ./configs/jenkins_jobs.ini
-        dest: /etc/jenkins_jobs
+    - name: Create Jenkins job
+      template: src=./job-config.xml.j2 dest="/var/lib/jenkins/jobs/jobnamedir/config.xml" force=no
 
     - name: Restart Jenkins
       service: name=jenkins state=restarted
 
-    - name: Pause after restart Jenkins
-      pause: seconds=30
-
     - name: Wait for Jenkins to become available
+      delay: 30
       wait_for: port=8080
-
-
-
-#### Add job by JJB ####
-
-    - name: Create jobs directory
-      file: path=/home/vagrant/jobs state=directory recurse=yes
-
-    - name: Copy job yaml file
-      copy:
-        src: ./configs/job.yaml
-        dest: /home/vagrant/jobs
-
-    - name: Copy ping file
-      copy:
-        src: ./configs/ping.sh
-        dest: /home/vagrant
-
-#### Before this stage need to update user token in jjb.ini file ####
- 
-#    - name: Update jobs by JJB
-#      shell: 'jenkins-jobs update /home/vagrant/jobs'
