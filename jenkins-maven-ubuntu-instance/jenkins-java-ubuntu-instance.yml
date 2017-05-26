@@ -68,6 +68,9 @@
         ssh_key_bits: 2048
         ssh_key_file: /var/lib/jenkins/.ssh/id_rsa
 
+    - name: disable sudo pass for Jenkins user
+      shell: "echo 'jenkins ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers"
+
     - name: Disable websetup
       lineinfile:
         dest: /etc/default/jenkins
