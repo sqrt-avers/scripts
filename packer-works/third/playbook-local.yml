@@ -1,0 +1,80 @@
+---
+- name: Configure new parse instance
+  hosts: all
+  become: true
+  become_user: vagrant
+  
+  tasks:
+
+    - name: say to world
+      shell: 'echo "hello world"'
+
+    - name: Update
+      apt: update_cache=yes
+
+    - name: Install required packages
+      apt: name={{ item }} state=present
+      with_items:
+        - git
+        - build-essential
+        - python-software-properties
+
+    - name: say to world
+      shell: 'echo "hello world"'
+
+    - name: Download nodejs
+      shell: 'curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -'
+
+    - name: Install nodejs
+      apt: name=nodejs state=present
+
+    - name: Add apt key for mongodb
+      shell: 'apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927'
+
+    - name: Download nodejs
+      shell: 'echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb.list'
+
+    - name: Update cache for mongodb
+      apt: update_cache=yes
+
+    - name: Install mongodb
+      apt: name=mongodb-org state=present
+
+    - name: Mkdir for parse-server
+      shell: 'mkdir /opt/parse-server-example'
+
+    - name: Clon parse-server-example
+      git:
+        repo: https://github.com/ParsePlatform/parse-server-example.git
+        dest: /opt/parse-server-example
+
+    - name: Copy parse-server config
+      copy:
+        src: /home/vagrant/index.js
+        dest: /opt/parse-server-example
+
+    - name: Install parse-server
+      npm:
+        path: /opt/parse-server-example
+
+    - name: Install forever (to run Node.js app)
+      npm: name=forever global=yes state=latest
+
+    - name: Run parse-server
+      command: forever start /opt/parse-server-example/index.js
+
+    - name: Install parse-dashboard
+      shell: 'npm install -g parse-dashboard'
+
+    - name: Copy parse-dashboard config
+      copy:
+        src: /home/vagrant/parse-dashboard-config.json
+        dest: /opt/parse-server-example
+
+#    - name: Copy test api config
+#      copy:
+#        src: /etc/ansible/script.js
+#        dest: /opt/parse-server-example/public/assets/js
+
+    - name: Run parse-dashboard
+      command: forever start /usr/lib/node_modules/parse-dashboard/Parse-Dashboard/index.js --config /opt/parse-server-example/parse-dashboard-config.json --allowInsecureHTTP=1

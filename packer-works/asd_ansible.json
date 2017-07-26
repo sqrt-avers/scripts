@@ -1,0 +1,48 @@
+{
+  "builders": [{
+    "type": "virtualbox-iso",
+    "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz noapic preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg <wait>",
+        "debian-installer=en_US auto locale=en_US kbd-chooser/method=us <wait>",
+        "hostname=aloha <wait>",
+        "fb=false debconf/frontend=noninteractive <wait>",
+        "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA keyboard-configuration/variant=USA console-setup/ask_detect=false <wait>",
+        "initrd=/install/initrd.gz -- <enter><wait>"
+    ],
+    "guest_os_type": "Ubuntu_64",
+    "iso_url": "http://releases.ubuntu.com/14.04.5/ubuntu-14.04.5-server-amd64.iso",
+    "iso_checksum_type": "md5",
+    "iso_checksum": "dd54dc8cfc2a655053d19813c2f9aa9f",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "ssh_port": 22,
+    "http_directory" : ".",
+    "http_port_min" : 9001,
+    "http_port_max" : 9001,
+    "ssh_wait_timeout": "5000s",
+    "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+    "vm_name": "packer-work",
+    "virtualbox_version_file": ".vbox_version",
+    "vboxmanage": [
+        ["modifyvm","{{.Name}}","--memory","1024"],
+        ["modifyvm","{{.Name}}","--cpus","1"]
+    ]
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "scripts": [
+        "asd.sh"
+    ],
+    "override": {
+      "virtualbox-iso": {
+        "execute_command": "echo 'vagrant' | sudo -S sh '{{.Path}}'"
+        }
+      }
+   },
+   {
+    "type": "ansible-local",
+    "playbook_file": "./playbook.yml"
+  }],
+  "post-processors": [{ "type": "vagrant", "output": "asd.box" }]
+}

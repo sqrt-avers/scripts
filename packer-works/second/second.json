@@ -1,0 +1,43 @@
+{
+  "variables": {
+        "ssh_name": "root",
+        "ssh_pass": "vagrant",
+        "hostname": "frpcr",
+        "os_type": "RedHat_64",
+        "url_iso": "http://mirror.mirohost.net/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1611.iso"
+  },
+  "builders": [{
+    "type": "virtualbox-iso",
+    "boot_command": ["<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg<enter><wait>"],
+    "guest_os_type": "{{user `os_type`}}",
+    "iso_url": "{{user `url_iso`}}",
+    "iso_checksum_type": "sha256",
+    "iso_checksum": "27bd866242ee058b7a5754e83d8ee8403e216b93d130d800852a96f41c34d86a",
+    "ssh_username": "{{user `ssh_name`}}",
+    "ssh_password": "{{user `ssh_pass`}}",
+    "ssh_port": 22,
+    "http_directory" : ".",
+    "http_port_min" : 9001,
+    "http_port_max" : 9001,
+    "ssh_wait_timeout": "5000s",
+    "shutdown_command": "/sbin/halt -p",
+    "vm_name": "packer-work-cent1",
+    "virtualbox_version_file": ".vbox_version",
+    "vboxmanage": [
+        ["modifyvm","{{.Name}}","--memory","1024"],
+        ["modifyvm","{{.Name}}","--cpus","1"]
+    ]
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "scripts": [
+        "second.sh"
+    ],
+    "override": {
+      "virtualbox-iso": {
+        "execute_command": "echo '{{user `ssh_pass`}}' | sudo -S bash '{{.Path}}'"
+      }
+    }
+  }],
+  "post-processors": [{ "type": "vagrant", "output": "centos7_instance.box" }]
+}

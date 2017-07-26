@@ -122,9 +122,9 @@
 
 #### Install Jenkins plugins ####
 
-    - name: Install email-ext plugin
+    - name: Install email plugin
       jenkins_plugin:
-        name: 'email-ext'
+        name: 'mailer'
         params: '{{ my_jenkins_params }}'
 
     - name: Install timestamper plugin
@@ -183,7 +183,3 @@
 
     - name: Wait for Jenkins to become available
       wait_for: port=8080
-
-
-
-

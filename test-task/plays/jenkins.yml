@@ -114,9 +114,9 @@
 
 #### Install Jenkins plugins ####
 
-    - name: Install email-ext plugin
+    - name: Install email plugin
       jenkins_plugin:
-        name: 'email-ext'
+        name: 'mailer'
         params: '{{ my_jenkins_params }}'
 
     - name: Install ws-cleanup plugin

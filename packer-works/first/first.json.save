@@ -1,0 +1,67 @@
+{
+  "variables": {
+        "ssh_name": "root",
+        "ssh_pass": "root",
+        "hostname": "frpcr"
+  },
+  "builders": [{
+    "type": "virtualbox-iso",
+    "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz noapic preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg <wait>",
+        "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA keyboard-configuration/variant=USA console-setup/ask_detect=false <wait>",
+        "debian-installer=en_US auto locale=en_US kbd-chooser/method=us <wait>",
+        "hostname={{user `hostname`}} <wait>",
+        "fb=false debconf/frontend=noninteractive <wait>",
+        "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA keyboard-configuration/variant=USA console-setup/ask_detect=false <wait>",
+        "initrd=/install/initrd.gz -- <enter><wait>"
+    ],
+    "guest_os_type": "Ubuntu_64",
+    "iso_url": "http://releases.ubuntu.com/14.04.5/ubuntu-14.04.5-server-amd64.iso",
+    "iso_checksum_type": "md5",
+    "iso_checksum": "dd54dc8cfc2a655053d19813c2f9aa9f",
+    "ssh_username": "{{user `ssh_name`}}",
+    "ssh_password": "{{user `ssh_pass`}}",
+    "ssh_port": 22,
+    "ssh_pty" : true,
+    "http_directory" : ".",
+    "http_port_min" : 9001,
+    "http_port_max" : 9001,
+    "ssh_wait_timeout": "5000s",
+    "shutdown_command": "echo '{{user `ssh_pass`}}' | sudo -S shutdown -P now",
+    "vm_name": "packer-work",
+    "virtualbox_version_file": ".vbox_version",
+    "vboxmanage": [
+        ["modifyvm","{{.Name}}","--memory","2048"],
+        ["modifyvm","{{.Name}}","--cpus","1"]
+    ]
+  }],
+  "provisioners": [{
+     "type": "shell",
+     "inline": [
+        "echo '{{user `ssh_pass`}}' | sudo -S useradd -d /home/vagrant -m vagrant",
+        "echo '{{user `ssh_pass`}}' | sudo -S ",
+        "echo '{{user `ssh_pass`}}' | sudo -S usermod -aG sudo vagrant",
+        "echo '{{user `ssh_pass`}}' | sudo -S sh -c \"echo 'vagrant ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers\"",
+        "mkdir /root/.ssh",
+        "mkdir /home/vagrant/.ssh",
+        "touch /root/.ssh/authorized_keys",
+        "touch /home/vagrant/.ssh/authorized_keys",
+        "wget --no-check-certificate 'https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub' -O /home/vagrant/.ssh/authorized_keys",
+        "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJakNhS+97RIhEzO54XY7kU8MgulBtoMWUj2H91Ft4vqpnVVSjA7Fbn9T3WQD+gFzKrZWHVkLd8PwVVAz9q4+yFGc4RDhhFXjGv8+GAGQJHBnTCCXcgPocCfeuHFGbPazMbQq1wL3jGx2BZOxQCpTQEMMUmQrjlHpMaSNeZF7X2eqH/j8zwlk2wKR6teKDBlr+Y581r78avy9nJQ+BczWITgiVKsdo/eQeiwW8yYEglac6sAEDK2mVSan8mciCMf+eO930fg792okRAez2sFv5kjeULawS5Cf01bFJBe+V7rkmsALIeiMpbmDj+tIr4B00v3QIoM5OopGC0ZqvjZCh gorynov@chi-079214' >> /home/vagrant/.ssh/authorized_keys",
+        "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBO21gYShSoFFd4JRHiKtkEUOP2FXFBlAg6yim02qZGDFLcrhNWlA32PUaiCBQDlV1/PivK1UDBdhDh5WDmjAptYPByy+WXz3PvlwIqO6aqzi194LMMnbf0fUnqfitb7RPPJ0K/gGzgqGCVgeGvCYgJgWPM7uLBRyOf54nRnR24CerLneY0JVzA03n3TqblMkChFmvkid1eO4ky+6IQj/60qw84YIGocn9MkJ5HU6xMGk0FhIy5hPohfs1gn6O0xbzbQE4qX7VzzTfKzGYRvY/jBM7ehQo1YY+4PowWpr7Tb7EdZvWxxMNqbtqCPFpZc0sLD8KTydEIFzdqix9uiiJ root@chi-079214' >> /home/vagrant/.ssh/authorized_keys",
+        "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJakNhS+97RIhEzO54XY7kU8MgulBtoMWUj2H91Ft4vqpnVVSjA7Fbn9T3WQD+gFzKrZWHVkLd8PwVVAz9q4+yFGc4RDhhFXjGv8+GAGQJHBnTCCXcgPocCfeuHFGbPazMbQq1wL3jGx2BZOxQCpTQEMMUmQrjlHpMaSNeZF7X2eqH/j8zwlk2wKR6teKDBlr+Y581r78avy9nJQ+BczWITgiVKsdo/eQeiwW8yYEglac6sAEDK2mVSan8mciCMf+eO930fg792okRAez2sFv5kjeULawS5Cf01bFJBe+V7rkmsALIeiMpbmDj+tIr4B00v3QIoM5OopGC0ZqvjZCh gorynov@chi-079214' >> /root/.ssh/authorized_keys",
+        "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBO21gYShSoFFd4JRHiKtkEUOP2FXFBlAg6yim02qZGDFLcrhNWlA32PUaiCBQDlV1/PivK1UDBdhDh5WDmjAptYPByy+WXz3PvlwIqO6aqzi194LMMnbf0fUnqfitb7RPPJ0K/gGzgqGCVgeGvCYgJgWPM7uLBRyOf54nRnR24CerLneY0JVzA03n3TqblMkChFmvkid1eO4ky+6IQj/60qw84YIGocn9MkJ5HU6xMGk0FhIy5hPohfs1gn6O0xbzbQE4qX7VzzTfKzGYRvY/jBM7ehQo1YY+4PowWpr7Tb7EdZvWxxMNqbtqCPFpZc0sLD8KTydEIFzdqix9uiiJ root@chi-079214' >> /root/.ssh/authorized_keys",
+        "echo '{{user `ssh_pass`}}' | sudo -S chmod 700 /root/.ssh",
+        "echo '{{user `ssh_pass`}}' | sudo -S chmod 600 /root/.ssh/authorized_keys",
+        "echo '{{user `ssh_pass`}}' | sudo -S chmod 700 /home/vagrant/.ssh",
+        "echo '{{user `ssh_pass`}}' | sudo -S chmod 600 /home/vagrant/.ssh/authorized_keys",
+        "echo '{{user `ssh_pass`}}' | sudo -S chown -R vagrant /home/vagrant/.ssh"
+    ]
+    },
+   {
+    "type": "ansible",
+    "playbook_file": "/home/gorynov/packer/first/playbook.yml"
+  }],
+  "post-processors": [{ "type": "vagrant", "output": "instance_{{timestamp}}.box" }]
+}
