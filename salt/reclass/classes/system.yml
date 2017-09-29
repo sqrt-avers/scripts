@@ -1,0 +1,8 @@
+classes:
+  - service
+parameters:
+  _param:
+    var1: {a:1, qwer:21}
+    var2: 
+      - "asddf"
+      - "zxcq"

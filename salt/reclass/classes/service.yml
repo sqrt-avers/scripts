@@ -1,0 +1,7 @@
+parameters:
+  _param:
+    var1: {a:1, d:21313, r:122} 
+    var2: 
+      - "asd"
+      - "adaaa"
+      - "zxc"

@@ -1,0 +1,5 @@
+applications:
+  - mysql-server
+  - mysql-client
+  - python-mysqldb
+  - php7.0-mysqlnx

@@ -1,0 +1,5 @@
+classes:
+  - system
+parameters:
+  _param:
+    var1: {a:1, b:2}
