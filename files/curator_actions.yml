@@ -1,0 +1,14 @@
+---
+actions:
+  1:
+    {action: delete_indices, description: Delete indices older than 5 days (based on
+    index name)., filters: [{exclude: null, filtertype: pattern, kind: regex, value: ^(log|notification)-.*$},
+    {direction: older, exclude: null, filtertype: age, source: name, timestring: '%Y.%m.%d',
+      unit: days, unit_count: 5}], options: {continue_if_exception: false, disable_action: false,
+    ignore_empty_list: true, timeout_override: null}}
+  2:
+    {action: delete_indices, description: Delete indices older than 5 days (based on
+    index name)., filters: [{exclude: null, filtertype: pattern, kind: regex, value: ^events_.*$},
+    {direction: older, exclude: null, filtertype: age, source: name, timestring: '%Y-%m-%d',
+      unit: days, unit_count: 5}], options: {continue_if_exception: false, disable_action: false,
+    ignore_empty_list: true, timeout_override: null}}
